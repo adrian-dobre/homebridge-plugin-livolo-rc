@@ -1,17 +1,14 @@
 import type { API, Characteristic, DynamicPlatformPlugin, Logging, PlatformAccessory, PlatformConfig, Service } from 'homebridge';
 
-import { ExamplePlatformAccessory } from './platformAccessory.js';
+import { LivoloRCPlatformAccessory } from './platformAccessory.js';
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
-
-// This is only required when using Custom Services and Characteristics not support by HomeKit
-import { EveHomeKitTypes } from 'homebridge-lib/EveHomeKitTypes';
 
 /**
  * HomebridgePlatform
  * This class is the main constructor for your plugin, this is where you should
  * parse the user config and discover/register accessories with Homebridge.
  */
-export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
+export class LivoloRCHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service;
   public readonly Characteristic: typeof Characteristic;
 
@@ -19,11 +16,6 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly accessories: Map<string, PlatformAccessory> = new Map();
   public readonly discoveredCacheUUIDs: string[] = [];
 
-  // This is only required when using Custom Services and Characteristics not support by HomeKit
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public readonly CustomServices: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public readonly CustomCharacteristics: any;
 
   constructor(
     public readonly log: Logging,
@@ -32,10 +24,6 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
   ) {
     this.Service = api.hap.Service;
     this.Characteristic = api.hap.Characteristic;
-
-    // This is only required when using Custom Services and Characteristics not support by HomeKit
-    this.CustomServices = new EveHomeKitTypes(this.api).Services;
-    this.CustomCharacteristics = new EveHomeKitTypes(this.api).Characteristics;
 
     this.log.debug('Finished initializing platform:', this.config.name);
 
@@ -70,29 +58,99 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
     // EXAMPLE ONLY
     // A real plugin you would discover accessories from the local network, cloud services
     // or a user-defined array in the platform config.
-    const exampleDevices = [
+    const devices = [
       {
-        exampleUniqueId: 'ABCD',
-        exampleDisplayName: 'Bedroom',
+
+        id: 'bl',
+        name: 'Bedroom Left',
+        remoteId: 16500,
+        keyCode: 0,
       },
       {
-        exampleUniqueId: 'EFGH',
-        exampleDisplayName: 'Kitchen',
+
+        id: 'br',
+        name: 'Bedroom Right',
+        remoteId: 16500,
+        keyCode: 96,
       },
       {
-        // This is an example of a device which uses a Custom Service
-        exampleUniqueId: 'IJKL',
-        exampleDisplayName: 'Backyard',
-        CustomService: 'AirPressureSensor',
+
+        id: 'lfl',
+        name: 'Living Front Left',
+        remoteId: 16399,
+        keyCode: 48,
+      },
+      {
+
+        id: 'lfr',
+        name: 'Living Front Right',
+        remoteId: 16399,
+        keyCode: 108,
+      },
+      {
+
+        id: 'lrl',
+        name: 'Living Rear Left',
+        remoteId: 16399,
+        keyCode: 12,
+      },
+      {
+
+        id: 'lrr',
+        name: 'Living Rear Right',
+        remoteId: 16399,
+        keyCode: 80,
+      },
+      {
+
+        id: 'vl',
+        name: 'Vlad Left',
+        remoteId: 17084,
+        keyCode: 0,
+      },
+      {
+
+        id: 'vr',
+        name: 'Vlad Right',
+        remoteId: 17084,
+        keyCode: 96,
+      },
+      {
+
+        id: 'kl',
+        name: 'Kitchen Left',
+        remoteId: 18083,
+        keyCode: 0,
+      },
+      {
+
+        id: 'kr',
+        name: 'Kitchen Right',
+        remoteId: 18083,
+        keyCode: 96,
+      },
+      {
+
+        id: 'h',
+        name: 'Hall',
+        remoteId: 18285,
+        keyCode: 0,
+      },
+      {
+
+        id: 'b',
+        name: 'Balcony',
+        remoteId: 18286,
+        keyCode: 0,
       },
     ];
 
     // loop over the discovered devices and register each one if it has not already been registered
-    for (const device of exampleDevices) {
+    for (const device of devices) {
       // generate a unique id for the accessory this should be generated from
       // something globally unique, but constant, for example, the device serial
       // number or MAC address
-      const uuid = this.api.hap.uuid.generate(device.exampleUniqueId);
+      const uuid = this.api.hap.uuid.generate(device.id);
 
       // see if an accessory with the same uuid has already been registered and restored from
       // the cached devices we stored in the `configureAccessory` method above
@@ -108,7 +166,7 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
 
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
-        new ExamplePlatformAccessory(this, existingAccessory);
+        new LivoloRCPlatformAccessory(this, existingAccessory, device.name, device.remoteId, device.keyCode);
 
         // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, e.g.:
         // remove platform accessories when no longer present
@@ -116,10 +174,10 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
         // this.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
       } else {
         // the accessory does not yet exist, so we need to create it
-        this.log.info('Adding new accessory:', device.exampleDisplayName);
+        this.log.info('Adding new accessory:', device.name);
 
         // create a new accessory
-        const accessory = new this.api.platformAccessory(device.exampleDisplayName, uuid);
+        const accessory = new this.api.platformAccessory(device.name, uuid);
 
         // store a copy of the device object in the `accessory.context`
         // the `context` property can be used to store any data about the accessory you may need
@@ -127,7 +185,7 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
 
         // create the accessory handler for the newly create accessory
         // this is imported from `platformAccessory.ts`
-        new ExamplePlatformAccessory(this, accessory);
+        new LivoloRCPlatformAccessory(this, accessory, device.name, device.remoteId, device.keyCode);
 
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);

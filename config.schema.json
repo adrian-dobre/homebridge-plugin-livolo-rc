@@ -1,16 +1,21 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "LivoloRCHomebridgePlugin",
   "pluginType": "platform",
   "singular": true,
   "strictValidation": false,
   "schema": {
     "type": "object",
     "properties": {
-      "name": {
-        "title": "Name",
+      "controllerUrl": {
+        "title": "Controller URL",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "http://127.0.0.1"
+      },
+      "controllerAccessKey": {
+        "title": "Controller Access Key",
+        "type": "string",
+        "required": true
       }
     }
   }
